@@ -1,0 +1,12 @@
+
+
+python test_server.py
+
+python client_node.py --name "Cracker_Bot"
+
+
+python server.py
+
+python client_node.py --name "Worker_1"
+
+python test_trigger.py
