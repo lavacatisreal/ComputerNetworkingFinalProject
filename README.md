@@ -52,7 +52,7 @@
 
 * 直接按 Start Task → server 印 [錯誤] 沒有節點在線，Dashboard 跳出「目前沒有任何 Worker 在線上，無法開始任務。」，狀態保持在 IDLE。
   
-1. 啟動控制中心 Server（工作一 + 工作三後端）
+1. 啟動控制中心 Server
 
 在第一個終端機：
 ```
@@ -64,9 +64,9 @@ Running on http://127.0.0.1:5000
 ```
 或同時顯示一個區網 IP（例如 http://140.xxx.xxx.xxx:5000）
 
-2. 啟動一個或多個 Worker 節點（工作二）
+2. 啟動一個或多個 Worker 節點
 
-在第二個終端機：
+在其他終端機：
 ```
 python client_node.py --name "Worker_1"
 python client_node.py --name "Worker_2"
@@ -77,7 +77,7 @@ python client_node.py --name "Worker_2"
 已連線到 Server
 Registration success / Waiting for tasks...
 ```
-3. 開啟 Dashboard 頁面（工作三前端）
+3. 開啟 Dashboard 頁面
 
 在瀏覽器輸入：
 ```
