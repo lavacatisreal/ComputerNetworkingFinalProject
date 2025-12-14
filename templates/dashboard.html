@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>分散雲端訓練 Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { margin-bottom: 8px; }
+    #nodes, #task-info { margin-top: 16px; }
+    .node-item { margin: 4px 0; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    .IDLE { background: #eee; }
+    .WORKING { background: #ffd86b; }
+    .DONE { background: #9ae6b4; }
+    #progress-bar {
+      width: 100%; background: #eee; height: 20px;
+      border-radius: 10px; overflow: hidden; margin-top: 8px;
+    }
+    #progress-inner {
+      height: 100%; width: 0%; background: #3182ce; transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <h1>社群式分散雲端訓練 Dashboard</h1>
+  <div>
+    <button id="start-btn">Start Task</button>
+    <span id="conn-status">連線中...</span>
+  </div>
+
+  <div id="nodes">
+    <h2>節點列表</h2>
+    <div id="node-list"></div>
+  </div>
+
+  <div id="task-info">
+    <h2>任務狀態</h2>
+    <div>目前任務 ID：<span id="task-id">-</span></div>
+    <div>狀態：<span id="task-status">IDLE</span></div>
+    <div>贏家：<span id="task-winner">-</span></div>
+    <div>找到的密碼：<span id="task-secret">-</span></div>
+  </div>
+
+  <script>
+    // 連到同一台 server（如果你之後用別台當 Dashboard，這裡改成 http://server-ip:5000）
+    const socket = io();
+
+    const connStatus = document.getElementById('conn-status');
+    const startBtn = document.getElementById('start-btn');
+    const nodeList = document.getElementById('node-list');
+    const taskIdSpan = document.getElementById('task-id');
+    const taskStatusSpan = document.getElementById('task-status');
+    const taskWinnerSpan = document.getElementById('task-winner');
+    const taskSecretSpan = document.getElementById('task-secret');
+
+    socket.on('connect', () => {
+      connStatus.textContent = '已連線';
+      connStatus.style.color = 'green';
+    });
+
+    socket.on('disconnect', () => {
+      connStatus.textContent = '已斷線';
+      connStatus.style.color = 'red';
+    });
+
+    // 從 Dashboard 觸發破解任務
+    startBtn.addEventListener('click', () => {
+      // 這裡先寫死測試用的 hash / 長度，你可以依需求改成 input 欄位
+      const TARGET_HASH = "98ff8943c652e4b68734299ee673cfc0"; // 003699 的 MD5，對應 test_trigger.py
+      // const TARGET_HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";  // 測「找不到」用
+      const LENGTH = 6;
+
+      socket.emit('start_task', {
+        target_hash: TARGET_HASH,
+        length: LENGTH,
+      });
+
+      taskStatusSpan.textContent = 'RUNNING';
+      taskWinnerSpan.textContent = '-';
+      taskSecretSpan.textContent = '-';
+    });
+
+    // 伺服器有任何節點變化時會 emit('update_node_list', nodes_list)
+    socket.on('update_node_list', (nodes) => {
+      nodeList.innerHTML = '';
+      (nodes || []).forEach(node => {
+        const div = document.createElement('div');
+        div.className = 'node-item';
+        const statusClass = node.status || 'IDLE';
+        div.innerHTML = `
+          <strong>${node.name}</strong>
+          <span class="badge ${statusClass}">${node.status}</span>
+        `;
+        nodeList.appendChild(div);
+      });
+    });
+
+    // 任務完成通知（對應 server.py 裡的 'task_completed'）
+    socket.on('task_completed', (data) => {
+      const success = data.success;
+      taskStatusSpan.textContent = 'COMPLETED';
+      taskIdSpan.textContent = data.task_id || '-';
+      taskWinnerSpan.textContent = data.winner || (success ? '-' : '無');
+      taskSecretSpan.textContent = data.secret || (success ? '-' : '（未找到）');
+
+      if (success) {
+        alert(`任務完成！贏家: ${data.winner}，密碼: ${data.secret}`);
+      } else {
+        alert('任務結束，但在指定的搜尋範圍內沒有任何節點找到密碼。');
+      }
+    });
+
+    // 在 dashboard.html 監聽 task_error
+    socket.on('task_error', (data) => {
+      const msg = data.message || '任務無法開始';
+      alert(msg);  // 或改成在頁面上的某個 <div> 顯示
+      // 順便把任務狀態還原
+      taskStatusSpan.textContent = 'IDLE';
+    });
+  </script>
+</body>
+</html>
