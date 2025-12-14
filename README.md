@@ -32,7 +32,6 @@
     * 負責「整體整合與測試」：
     * 規劃 Demo 流程、錄 Demo 影片。
     * 壓測：同時開多個 client、反覆按 Start Task，確認介面與後端都穩定。
-<<<<<<< HEAD
 
 ## 三種情境
 1. 有節點、有解答
@@ -52,5 +51,50 @@
 * 不啟動任何 client_node，只開 server 和 Dashboard。
 
 * 直接按 Start Task → server 印 [錯誤] 沒有節點在線，Dashboard 跳出「目前沒有任何 Worker 在線上，無法開始任務。」，狀態保持在 IDLE。
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
+
+## 測試流程
+1. 啟動控制中心 Server
+
+在第一個終端機：
+```
+python server.py
+```
+看到類似以下訊息代表啟動成功：
+```
+Running on http://127.0.0.1:5000
+```
+或同時顯示一個區網 IP（例如 http://140.xxx.xxx.xxx:5000）
+
+2. 啟動一個或多個 Worker 節點
+
+在其他終端機：
+```
+python client_node.py --name "Worker_1"
+python client_node.py --name "Worker_2"
+...
+```
+預期畫面會顯示：
+```
+已連線到 Server
+Registration success / Waiting for tasks...
+```
+3. 開啟 Dashboard 頁面
+
+在瀏覽器輸入：
+```
+http://127.0.0.1:5000/dashboard
+```
+如果是用別台電腦當 Dashboard，請改成：
+```
+http://<server-ip>:5000/dashboard
+```
+（例：http://140.xxx.xxx.xxx:5000/dashboard）
+
+畫面應該會顯示：
+上方：連線狀態（連線中 / 已連線）、Start Task 按鈕
+中間：節點列表（Worker_1、Worker_2...，狀態為 IDLE）
+下方：任務狀態（任務 ID / 狀態 / 贏家 / 密碼）
+
+### 測試資料
+MD5：`c33367701511b4f6020ec61ded352059`
+密碼：654321

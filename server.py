@@ -1,11 +1,6 @@
 # server.py
 # 這是你的「工作一」核心程式碼
-
-<<<<<<< HEAD
 from flask import Flask, request, jsonify, render_template
-=======
-from flask import Flask, request, jsonify
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
 from flask_socketio import SocketIO, emit
 import uuid
 import math
@@ -26,7 +21,6 @@ current_task = {
     "status": "IDLE",       # IDLE, RUNNING, COMPLETED
     "winner": None,         # 誰找到了
     "secret_found": None,   # 找到的密碼原文
-<<<<<<< HEAD
     "start_time": 0,
     "finished_nodes": 0   # ✅ 新增：已回報的節點數
 }
@@ -37,12 +31,6 @@ def dashboard():
     # 預設載入時可以先給一些初始資料（也可以先不傳）
     return render_template("dashboard.html")
 
-=======
-    "start_time": 0
-}
-
-# --- 輔助函式：廣播節點列表給 Dashboard ---
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
 def broadcast_node_list():
     # 整理一下資料格式，只傳送需要的資訊
     nodes_list = []
@@ -98,13 +86,10 @@ def handle_start_task(data):
     
     if node_count == 0:
         print("[錯誤] 沒有節點在線，無法開始任務")
-<<<<<<< HEAD
         socketio.emit('task_error', {
             "reason": "NO_NODES",
             "message": "目前沒有任何 Worker 在線上，無法開始任務。"
         })
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
         return
 
     # 初始化任務狀態
@@ -113,11 +98,8 @@ def handle_start_task(data):
     current_task['target_hash'] = target_hash
     current_task['status'] = "RUNNING"
     current_task['winner'] = None
-<<<<<<< HEAD
     current_task['secret_found'] = None
     current_task['finished_nodes'] = 0   # ✅ 重置計數
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
     
     # 切分任務範圍
     chunk_size = math.ceil(total_combinations / node_count)
@@ -154,11 +136,7 @@ def handle_result(data):
         return
 
     node_name = connected_nodes.get(request.sid, {}).get('name', 'Unknown')
-<<<<<<< HEAD
     # 如果這個節點找到密碼（成功情況）
-=======
-    
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
     if data.get('found'):
         secret = data.get('result')
         print(f"[成功] {node_name} 找到了密碼: {secret}")
@@ -167,7 +145,6 @@ def handle_result(data):
         current_task['winner'] = node_name
         current_task['secret_found'] = secret
         
-<<<<<<< HEAD
         # ✅ 統計完成數：一樣算已回報
         current_task['finished_nodes'] += 1
         total_nodes = len(connected_nodes)
@@ -177,8 +154,6 @@ def handle_result(data):
             "status": current_task['status'],
         })
 
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
         # 1. 廣播停止指令
         socketio.emit('stop_task', {
             "task_id": current_task['id'],
@@ -189,12 +164,8 @@ def handle_result(data):
         socketio.emit('task_completed', {
             "success": True,
             "secret": secret,
-<<<<<<< HEAD
             "winner": node_name,
             "task_id": current_task['id'],
-=======
-            "winner": node_name
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
         })
         
         # 重置狀態
@@ -203,15 +174,12 @@ def handle_result(data):
         broadcast_node_list()
         
     else:
-<<<<<<< HEAD
         # 這個節點範圍掃完但沒找到
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
         print(f"[進度] {node_name} 搜尋完畢，但沒找到")
         connected_nodes[request.sid]['status'] = 'IDLE'
         broadcast_node_list()
 
-<<<<<<< HEAD
+
         # ✅ 統計「已回報」的節點數
         current_task['finished_nodes'] += 1
         # ✅ 這裡新增 task_progress（沒找到也算進度）
@@ -235,8 +203,7 @@ def handle_result(data):
                 "task_id": current_task['id'],
             })
 
-=======
->>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
+
 if __name__ == '__main__':
     # host='0.0.0.0' 讓同網域的其他電腦連得進來
     print("Server 啟動中... 請按 Ctrl+C 停止")
