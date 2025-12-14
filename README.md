@@ -32,6 +32,7 @@
     * 負責「整體整合與測試」：
     * 規劃 Demo 流程、錄 Demo 影片。
     * 壓測：同時開多個 client、反覆按 Start Task，確認介面與後端都穩定。
+<<<<<<< HEAD
 
 ## 三種情境
 1. 有節點、有解答
@@ -51,3 +52,5 @@
 * 不啟動任何 client_node，只開 server 和 Dashboard。
 
 * 直接按 Start Task → server 印 [錯誤] 沒有節點在線，Dashboard 跳出「目前沒有任何 Worker 在線上，無法開始任務。」，狀態保持在 IDLE。
+=======
+>>>>>>> 616ca1a2cb15f8f53a7971f9a839c31aec43edfc
