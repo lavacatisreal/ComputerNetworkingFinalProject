@@ -142,15 +142,20 @@
       taskSecretSpan.textContent = data.secret || (success ? '-' : '（未找到）');
 
       if (success) {
-        setMessage(`任務完成！贏家：${data.winner}，密碼：${data.secret}`, '#38a169');
+        const text = `任務完成！贏家：${data.winner}，密碼：${data.secret}`;
+        alert(text);                     // ✅ 新增：彈出視窗
+        setMessage(text, '#38a169');
       } else {
-        setMessage('任務結束，但在指定的搜尋範圍內沒有任何節點找到密碼。', '#d69e2e');
+        const text = '任務結束，但在指定的搜尋範圍內沒有任何節點找到密碼。';
+        alert(text);                     // ✅ 新增：彈出視窗
+        setMessage(text, '#d69e2e');
       }
     });
 
     // 在 dashboard.html 監聽 task_error
     socket.on('task_error', (data) => {
       const msg = data.message || '任務無法開始';
+      alert(msg);                        // ✅ 新增：彈出視窗
       setMessage(msg, '#e53e3e');
       taskStatusSpan.textContent = 'IDLE';
     });
