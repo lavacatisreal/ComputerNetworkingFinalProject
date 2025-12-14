@@ -146,6 +146,15 @@ def handle_result(data):
         current_task['winner'] = node_name
         current_task['secret_found'] = secret
         
+        # ✅ 統計完成數：一樣算已回報
+        current_task['finished_nodes'] += 1
+        total_nodes = len(connected_nodes)
+        socketio.emit('task_progress', {
+            "finished": total_nodes,   # 直接視為全部完成
+            "total": total_nodes,
+            "status": current_task['status'],
+        })
+
         # 1. 廣播停止指令
         socketio.emit('stop_task', {
             "task_id": current_task['id'],
@@ -173,6 +182,13 @@ def handle_result(data):
 
         # ✅ 統計「已回報」的節點數
         current_task['finished_nodes'] += 1
+        # ✅ 這裡新增 task_progress（沒找到也算進度）
+        total_nodes = len(connected_nodes)
+        socketio.emit('task_progress', {
+            "finished": current_task['finished_nodes'],
+            "total": total_nodes,
+            "status": current_task['status'],
+        })
 
         # 如果所有節點都回報完了，且沒有贏家，就宣告失敗結束
         if current_task['finished_nodes'] == len(connected_nodes) and current_task['winner'] is None:

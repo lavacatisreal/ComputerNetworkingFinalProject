@@ -10,9 +10,9 @@
     #nodes, #task-info { margin-top: 16px; }
     .node-item { margin: 4px 0; }
     .badge { padding: 2px 6px; border-radius: 4px; font-size: 12px; }
-    .IDLE { background: #eee; }
-    .WORKING { background: #ffd86b; }
-    .DONE { background: #9ae6b4; }
+    .IDLE { background: #e2e8f0; color: #1a202c; }
+    .WORKING { background: #f6e05e; color: #744210; }
+    .DONE { background: #48bb78; color: #1c4532; }
     #progress-bar {
       width: 100%; background: #eee; height: 20px;
       border-radius: 10px; overflow: hidden; margin-top: 8px;
@@ -24,9 +24,18 @@
 </head>
 <body>
   <h1>社群式分散雲端訓練 Dashboard</h1>
+
   <div>
     <button id="start-btn">Start Task</button>
     <span id="conn-status">連線中...</span>
+  </div>
+
+  <!-- ✅ 新增：任務參數輸入區 -->
+  <div style="margin-top: 8px;">
+    <label>Target MD5: <input id="hash-input" size="40" /></label>
+    <label style="margin-left: 8px;">Length:
+      <input id="len-input" type="number" min="1" max="8" value="6" style="width: 60px;" />
+    </label>
   </div>
 
   <div id="nodes">
@@ -40,7 +49,13 @@
     <div>狀態：<span id="task-status">IDLE</span></div>
     <div>贏家：<span id="task-winner">-</span></div>
     <div>找到的密碼：<span id="task-secret">-</span></div>
+  
+    <!-- ✅ 新增：節點完成數 + 進度條 -->
+    <div>節點完成數：<span id="node-done">0</span> / <span id="node-total">0</span></div>
+    <div id="progress-bar"><div id="progress-inner"></div></div>
   </div>
+
+  <div id="message-bar" style="margin-top: 12px; color: #2b6cb0;"></div>
 
   <script>
     // 連到同一台 server（如果你之後用別台當 Dashboard，這裡改成 http://server-ip:5000）
@@ -48,11 +63,33 @@
 
     const connStatus = document.getElementById('conn-status');
     const startBtn = document.getElementById('start-btn');
+    const hashInput = document.getElementById('hash-input');
+    const lenInput = document.getElementById('len-input');
     const nodeList = document.getElementById('node-list');
     const taskIdSpan = document.getElementById('task-id');
     const taskStatusSpan = document.getElementById('task-status');
     const taskWinnerSpan = document.getElementById('task-winner');
     const taskSecretSpan = document.getElementById('task-secret');
+    const nodeDoneSpan = document.getElementById('node-done');
+    const nodeTotalSpan = document.getElementById('node-total');
+    const progressInner = document.getElementById('progress-inner');
+    const msgBar = document.getElementById('message-bar');
+
+    function setMessage(text, color = '#2b6cb0') {
+      msgBar.textContent = text;
+      msgBar.style.color = color;
+    }
+
+    socket.on('task_progress', (data) => {
+      const finished = data.finished || 0;
+      const total = data.total || 0;
+      nodeDoneSpan.textContent = finished;
+      nodeTotalSpan.textContent = total;
+
+      const percent = total > 0 ? Math.round(finished * 100 / total) : 0;
+      progressInner.style.width = percent + '%';
+    });
+
 
     socket.on('connect', () => {
       connStatus.textContent = '已連線';
@@ -66,10 +103,8 @@
 
     // 從 Dashboard 觸發破解任務
     startBtn.addEventListener('click', () => {
-      // 這裡先寫死測試用的 hash / 長度，你可以依需求改成 input 欄位
-      const TARGET_HASH = "98ff8943c652e4b68734299ee673cfc0"; // 003699 的 MD5，對應 test_trigger.py
-      // const TARGET_HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";  // 測「找不到」用
-      const LENGTH = 6;
+      const TARGET_HASH = hashInput.value.trim() || "98ff8943c652e4b68734299ee673cfc0"; // 預設測試用
+      const LENGTH = parseInt(lenInput.value || '6', 10);
 
       socket.emit('start_task', {
         target_hash: TARGET_HASH,
@@ -88,9 +123,11 @@
         const div = document.createElement('div');
         div.className = 'node-item';
         const statusClass = node.status || 'IDLE';
+        // ✅ 新版本：加小圓點 + 顏色 badge
         div.innerHTML = `
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38a169;margin-right:6px;"></span>
           <strong>${node.name}</strong>
-          <span class="badge ${statusClass}">${node.status}</span>
+          <span class="badge ${statusClass}" style="margin-left:6px;">${node.status}</span>
         `;
         nodeList.appendChild(div);
       });
@@ -105,17 +142,16 @@
       taskSecretSpan.textContent = data.secret || (success ? '-' : '（未找到）');
 
       if (success) {
-        alert(`任務完成！贏家: ${data.winner}，密碼: ${data.secret}`);
+        setMessage(`任務完成！贏家：${data.winner}，密碼：${data.secret}`, '#38a169');
       } else {
-        alert('任務結束，但在指定的搜尋範圍內沒有任何節點找到密碼。');
+        setMessage('任務結束，但在指定的搜尋範圍內沒有任何節點找到密碼。', '#d69e2e');
       }
     });
 
     // 在 dashboard.html 監聽 task_error
     socket.on('task_error', (data) => {
       const msg = data.message || '任務無法開始';
-      alert(msg);  // 或改成在頁面上的某個 <div> 顯示
-      // 順便把任務狀態還原
+      setMessage(msg, '#e53e3e');
       taskStatusSpan.textContent = 'IDLE';
     });
   </script>
