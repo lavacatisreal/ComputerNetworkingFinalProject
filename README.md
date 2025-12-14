@@ -51,7 +51,8 @@
 * 不啟動任何 client_node，只開 server 和 Dashboard。
 
 * 直接按 Start Task → server 印 [錯誤] 沒有節點在線，Dashboard 跳出「目前沒有任何 Worker 在線上，無法開始任務。」，狀態保持在 IDLE。
-  
+
+## 測試流程
 1. 啟動控制中心 Server
 
 在第一個終端機：
